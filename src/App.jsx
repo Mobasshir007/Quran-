@@ -1,29 +1,7 @@
 import React, { useEffect, useState } from "react";
-
-// Card Component
-const Card = ({ data, onSelect }) => {
-  return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4">
-      {data.map(item => (
-        <div
-          key={item.number}
-          onClick={() => {
-            console.log("Clicked Surah:", item.number);
-            onSelect(item.number);
-          }}
-          className="h-48 border-2 border-purple-400 bg-purple-100 cursor-pointer hover:bg-purple-200 transition-colors rounded-lg p-4 flex flex-col items-center justify-center shadow-md"
-        >
-          <div className="text-6xl mb-2">📖</div>
-          <div className="text-center">
-            <p className="font-bold text-lg">{item.number}. {item.englishName}</p>
-            <h2 className="text-2xl mt-2" style={{ direction: "rtl" }}>{item.name}</h2>
-            <p className="text-sm text-gray-600">{item.englishNameTranslation}</p>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-};
+import Card from "./Card";
+import Header from "./Header";
+import NotFound from "./NotFound";
 
 // Main App Component
 const App = () => {
@@ -32,6 +10,8 @@ const App = () => {
   const [selectedSurah, setSelectedSurah] = useState(null);
   const [selectedSurahInfo, setSelectedSurahInfo] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [search, setSearch] = useState("");
+  const [filteredSearch, setFilteredSearch] = useState([]);
 
   const fetchSurahList = async () => {
     try {
@@ -39,6 +19,7 @@ const App = () => {
       const data = await res.json();
       console.log("Surah list loaded:", data.data.length);
       setSurah(data.data);
+      setFilteredSearch(data.data);
     } catch (error) {
       console.error("Error fetching Surah list:", error);
     }
@@ -50,116 +31,194 @@ const App = () => {
 
   useEffect(() => {
     if (!selectedSurah) return;
-    
+    let arabicAyahs = [];
+    let hindiAyahs = [];
     console.log("Fetching Ayahs for Surah:", selectedSurah);
     setLoading(true);
     setAyah([]);
-    
+
     fetch(`https://api.alquran.cloud/v1/surah/${selectedSurah}/quran-uthmani`)
       .then((res) => {
         console.log("Response received, status:", res.status);
         return res.json();
       })
       .then((data) => {
-        console.log("Data received:", data);
-        if (data.data && data.data.ayahs) {
-          console.log("Setting Ayahs, count:", data.data.ayahs.length);
-          setAyah(data.data.ayahs);
-          setSelectedSurahInfo(data.data);
-        }
-        setLoading(false);
+        arabicAyahs = data.data.ayahs;
+        
+        return fetch(
+          `https://api.alquran.cloud/v1/surah/${selectedSurah}/hi.hindi`
+        );
       })
-      .catch((error) => {
-        console.error("Error fetching Ayahs:", error);
-        setLoading(false);
-      });
+
+      .then((res) => {
+        return res.json();
+      })
+      .then((hindiData) => {
+       
+          hindiAyahs=hindiData.data.ayahs
+       
+          // 🔥 MERGE HERE
+      const hindiMap = new Map(
+        hindiAyahs.map(a => [a.numberInSurah, a.text])
+      );
+
+      const merged = arabicAyahs.map(a => ({
+        id: a.numberInSurah,
+        arabic: a.text,
+        hindi: hindiMap.get(a.numberInSurah) || ""
+      }));
+
+      setAyah(merged);
+      console.log(ayah)
+      setLoading(false);
+    })
+    .catch(err => {
+      console.error("Error fetching ayahs:", err);
+      setLoading(false);
+    });
   }, [selectedSurah]);
+  console.log(ayah)
+  const displayData = search ? filteredSearch : surah;
+
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <h1 className="text-4xl font-bold text-center mb-8 text-purple-800">
-          القرآن الكريم - The Holy Quran
-        </h1>
-        
-        {/* Surah List */}
-        {!selectedSurah ? (
-          <Card data={surah} onSelect={setSelectedSurah} />
-        ) : (
-          <div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-emerald-50">
+      {/* Surah List View */}
+      {!selectedSurah ? (
+        <div>
+          <Header
+            search={search}
+            setSearch={setSearch}
+            surah={surah}
+            setFilteredSearch={setFilteredSearch}
+          />
+          <div className="container mx-auto px-4 py-8">
+            {filteredSearch.length === 0 ? (
+              <NotFound />
+            ) : (
+              <Card data={displayData} onSelect={setSelectedSurah} />
+            )}
+          </div>
+        </div>
+      ) : (
+        /* Ayah View */
+        <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-50">
+          <div className="container mx-auto px-4 py-8">
             {/* Back Button */}
             <button
               onClick={() => {
                 setSelectedSurah(null);
                 setAyah([]);
               }}
-              className="mb-4 px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+              className="mb-6 px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl  hover:from-emerald-700 hover:to-teal-700 transition-all duration-300 shadow-lg hover:shadow-xl font-semibold flex items-center gap-2"
             >
               ← Back to Surah List
             </button>
-            
+
             {/* Surah Info */}
             {selectedSurahInfo && (
-              <div className="bg-purple-100 rounded-lg p-6 mb-6 text-center">
-                <h2 className="text-3xl font-bold mb-2" style={{ direction: "rtl" }}>
+              <div className="bg-gradient-to-r from-emerald-100 via-teal-100 to-cyan-100 rounded-2xl p-8 mb-8 text-center shadow-lg border border-emerald-200">
+                <h2
+                  className="text-4xl font-bold mb-3 text-emerald-900"
+                  style={{
+                    direction: "rtl",
+                    fontFamily: "Traditional Arabic, Arial",
+                  }}
+                >
                   {selectedSurahInfo.name}
                 </h2>
-                <p className="text-xl text-gray-700">
-                  {selectedSurahInfo.englishName} - {selectedSurahInfo.englishNameTranslation}
+                <p className="text-2xl text-gray-800 font-semibold mb-2">
+                  {selectedSurahInfo.englishName} -{" "}
+                  {selectedSurahInfo.englishNameTranslation}
                 </p>
-                <p className="text-sm text-gray-600 mt-2">
-                  {selectedSurahInfo.revelationType} • {selectedSurahInfo.numberOfAyahs} Ayahs
-                </p>
-              </div>
-            )}
-            
-            {/* Loading State */}
-            {loading && (
-              <div className="text-center py-8">
-                <div className="text-2xl">Loading Ayahs...</div>
-              </div>
-            )}
-            
-            {/* Ayahs Display */}
-            {!loading && ayah.length > 0 && (
-              <div className="bg-white rounded-lg shadow-lg p-6">
-                <h3 className="text-2xl font-semibold mb-6 text-center text-purple-800">
-                  {ayah.length} Ayahs
-                </h3>
-                
-                <div className="space-y-6">
-                  {ayah.map((verse) => (
-                    <div
-                      key={verse.numberInSurah}
-                      className="p-6 border-b-2 border-purple-200 last:border-b-0 hover:bg-purple-50 transition-colors"
-                    >
-                      <div className="flex justify-between items-start mb-3">
-                        <span className="text-sm font-semibold text-purple-600 bg-purple-100 px-3 py-1 rounded-full">
-                          Ayah {verse.numberInSurah}
-                        </span>
-                      </div>
-                      <p 
-                        className="text-3xl leading-loose text-gray-800 font-arabic"
-                        style={{ direction: "rtl", textAlign: "right", fontFamily: "Traditional Arabic, Arial" }}
-                      >
-                        {verse.text}
-                      </p>
-                    </div>
-                  ))}
+                <div className="flex items-center justify-center gap-4 mt-4">
+                  <span className="bg-white/70 backdrop-blur-sm px-4 py-2 rounded-full text-sm font-medium text-emerald-700">
+                    📖 {selectedSurahInfo.revelationType}
+                  </span>
+                  <span className="bg-white/70 backdrop-blur-sm px-4 py-2 rounded-full text-sm font-medium text-teal-700">
+                    🔢 {selectedSurahInfo.numberOfAyahs} Ayahs
+                  </span>
                 </div>
               </div>
             )}
-            
+
+            {/* Loading State */}
+            {loading && (
+              <div className="text-center py-16">
+                <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-emerald-600 border-t-transparent mb-4"></div>
+                <div className="text-2xl text-emerald-700 font-semibold">
+                  Loading Ayahs...
+                </div>
+              </div>
+            )}
+
+            {/* Ayahs Display */}
+            {!loading && ayah.length > 0 && (
+              <div className="bg-white rounded-2xl shadow-2xl p-8 border border-gray-100">
+                <h3 className="text-3xl font-bold mb-8 text-center bg-gradient-to-r from-emerald-700 to-teal-700 bg-clip-text text-transparent">
+                  {ayah.length} Ayahs
+                </h3>
+
+                <div className="space-y-8">
+                  {ayah.map((verse) => (
+                    <div
+                      key={verse.id}
+                      className="p-6 border-b-2 border-emerald-100 last:border-b-0 hover:bg-gradient-to-r hover:from-emerald-50 hover:to-teal-50 transition-all duration-300 rounded-lg"
+                    >
+                      <div className="flex justify-between items-start mb-4">
+                        <span className="text-sm font-bold bg-gradient-to-r from-emerald-500 to-teal-500 text-white px-4 py-2 rounded-full shadow-md">
+                         {verse.id}
+                        </span>
+                      </div>
+                      <p
+                        className="text-3xl leading-loose text-gray-800"
+                        style={{
+                          direction: "rtl",
+                          textAlign: "right",
+                          fontFamily: "Traditional Arabic, Arial",
+                        }}
+                      >
+                        {verse.arabic}
+                      </p>
+                      <p
+                        className="text-3xl leading-loose text-gray-800"
+                        style={{
+                          direction: "rtl",
+                          textAlign: "right",
+                          fontFamily: "Traditional Arabic, Arial",
+                        }}
+                      >
+                        {verse.hindi}
+                      </p>
+                    </div>
+                  ))}
+
+                  {/* Bottom Back Button */}
+                  <button
+                    onClick={() => {
+                      setSelectedSurah(null);
+                      setAyah([]);
+                    }}
+                    className="w-full mt-8 px-6 py-4 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl hover:from-emerald-700 hover:to-teal-700 transition-all duration-300 shadow-lg hover:shadow-xl font-semibold text-lg"
+                  >
+                    ← Back to Surah List
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* No Ayahs Found */}
             {!loading && ayah.length === 0 && (
-              <div className="text-center py-8 text-gray-500">
-                No Ayahs found
+              <div className="text-center py-16 bg-white rounded-2xl shadow-lg">
+                <div className="text-6xl mb-4">📖</div>
+                <div className="text-2xl text-gray-500 font-medium">
+                  No Ayahs found
+                </div>
               </div>
             )}
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };
