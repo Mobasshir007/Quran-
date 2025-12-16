@@ -110,7 +110,7 @@ const App = () => {
                 setSelectedSurah(null);
                 setAyah([]);
               }}
-              className="mb-6 px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl  hover:from-emerald-700 hover:to-teal-700 transition-all duration-300 shadow-lg hover:shadow-xl font-semibold flex items-center gap-2"
+              className="mb-6 px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl  hover:from-emerald-700 hover:to-teal-700 transition-all duration-300 shadow-lg hover:shadow-xl font-semibold flex items-center fixed gap-2"
             >
               ← Back to Surah List
             </button>

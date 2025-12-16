@@ -32,7 +32,7 @@ const Header = ({search, setSearch, surah, setFilteredSearch}) => {
   return (
     <>
       {/* Main Header */}
-      <div className="bg-gradient-to-r from-teal-600 via-teal-600 to-cyan-600 shadow-xl sticky top-0 z-50">
+      <div className="bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 shadow-xl sticky top-0 z-50">
         <div className="container mx-auto px-4 py-6">
           {/* Title Section */}
           <div className="flex items-center justify-center gap-3 mb-4">
@@ -41,13 +41,16 @@ const Header = ({search, setSearch, surah, setFilteredSearch}) => {
             </div>
             <div className="text-center">
               <h1 
-                className="text-3xl md:text-4xl font-bold text-white drop-shadow-lg"
+                className="text-3xl md:text-4xl font-bold text-white drop-shadow-lg mb-1"
                 style={{ fontFamily: 'Georgia, serif' }}
               >
-                القرآن الكريم
+                Quran (Hindi Translation)
               </h1>
-              <p className="text-white/90 text-sm md:text-base font-light tracking-wide">
-                The Holy Quran
+              <p 
+                className="text-white/95 text-lg md:text-xl font-semibold tracking-wide"
+                style={{ fontFamily: 'Noto Sans Devanagari, sans-serif' }}
+              >
+                कुरान हिंदी अनुवाद
               </p>
             </div>
           </div>
