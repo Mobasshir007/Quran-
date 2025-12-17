@@ -25,7 +25,7 @@ const NotFound = () => {
             className="text-2xl mb-4 text-gray-600"
             style={{ direction: "rtl", fontFamily: "Traditional Arabic, Arial" }}
           >
-            لم يتم العثور على نتائج
+           परिणाम उपलब्ध नहीं हैं
           </p>
 
           {/* Description */}
@@ -56,7 +56,7 @@ const NotFound = () => {
               className="w-full px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white rounded-xl font-semibold transition-all duration-300 shadow-md hover:shadow-lg flex items-center justify-center gap-2"
             >
               <BookOpen size={20} />
-              View All Surahs
+              View All Surahs / सभी सूरहों की सूची
             </button>
           </div>
         </div>

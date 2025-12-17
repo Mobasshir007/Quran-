@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from "react";
-import Card from "./Card";
+
 import Header from "./Header";
 import NotFound from "./NotFound";
 import { Analytics } from '@vercel/analytics/react';
+import Shimmer from "./Shimmer";
+import { lazy, Suspense } from "react";
+const Card = lazy(() => import("./Card"));
 
 
 // Main App Component
@@ -94,13 +97,19 @@ const App = () => {
             surah={surah}
             setFilteredSearch={setFilteredSearch}
           />
-          <div className="container mx-auto px-4 py-8">
-            {filteredSearch.length === 0 ? (
-              <NotFound />
-            ) : (
-              <Card data={displayData} onSelect={setSelectedSurah} />
-            )}
-          </div>
+         <div className="container mx-auto px-4 py-8">
+         
+
+  {surah.length === 0 ? (
+    <Shimmer />
+  ) : filteredSearch.length===0 ?(<NotFound/>):(
+    <Suspense fallback={<Shimmer />}>
+      <Card data={displayData} onSelect={setSelectedSurah} />
+    </Suspense>
+  )}
+
+</div>
+
         </div>
       ) : (
         /* Ayah View */
@@ -112,7 +121,7 @@ const App = () => {
                 setSelectedSurah(null);
                 setAyah([]);
               }}
-              className="mb-6 px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl  hover:from-emerald-700 hover:to-teal-700 transition-all duration-300 shadow-lg hover:shadow-xl font-semibold flex items-center fixed gap-2"
+              className="mb-6 px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl  hover:from-emerald-700 hover:to-teal-700 transition-all duration-300 shadow-lg hover:shadow-xl font-semibold flex items-center  gap-2"
             >
               ← Back to Surah List
             </button>
