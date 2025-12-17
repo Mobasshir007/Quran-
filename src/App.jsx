@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import Card from "./Card";
 import Header from "./Header";
 import NotFound from "./NotFound";
+import { Analytics } from '@vercel/analytics/react';
+
 
 // Main App Component
 const App = () => {
@@ -219,6 +221,7 @@ const App = () => {
           </div>
         </div>
       )}
+      <Analytics/>
     </div>
   );
 };
